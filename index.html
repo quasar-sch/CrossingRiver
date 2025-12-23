@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>강 건너기 퍼즐 ⛵ v1.1</title>
+<title>강 건너기 퍼즐 ⛵</title>
 <style>
   :root { --bg:#f4fbff; --ink:#1f2937; --accent:#0ea5e9; --card:#ffffffcc; }
   body{margin:0;font-family:system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,sans-serif;background:var(--bg);color:var(--ink)}
@@ -168,7 +168,7 @@
 <script>
 const STAGES=[
  {name:"1단계 · 늑대, 양 그리고 양배추",tokens:["person","wolf","goat","cabbage"],capacity:2,requiresPerson:true,
-  ruleText:"사람만 배의 노를 저을 수 있습니다. 사람이 없는 둑에서 늑대+양 또는 양+양배추가 남으면 게임 오버입니다.",
+  ruleText:"사람만 배의 노를 저을 수 있습니다. 사람이 둑에 없다면 늑대는 양을, 양은 양배추를 잡아먹어 게임 오버입니다.",
   rules:(pos,side)=>{
     const b={L:[],R:[]};
     for(const t in pos){const s=pos[t]==="BOAT"?side:pos[t];b[s].push(t);}
@@ -184,7 +184,7 @@ const STAGES=[
   }},
 
  {name:"2단계 · 선교사와 뱀파이어",tokens:["M1","M2","M3","V1","V2","V3"],capacity:2,requiresPerson:false,
-  ruleText:"선교사/뱀파이어 모두 배를 몰 수 있고, 배는 최대 2명까지 탑승 가능합니다. 어느 둑이든 선교사가 있고 뱀파이어가 선교사보다 많으면 게임 오버입니다.",
+  ruleText:"선교사와 뱀파이어 모두 배를 몰 수 있고, 배는 최대 2명까지 탑승 가능합니다. 어느 둑이든 뱀파이어가 선교사보다 많으면 게임 오버입니다.",
   rules:(pos,side)=>{
     const c={L:{M:0,V:0},R:{M:0,V:0}};
     for(const t in pos){
@@ -196,7 +196,7 @@ const STAGES=[
   }},
 
  {name:"3단계 · 엘프·좀비·마법사",tokens:["ElfBoss","Elf","ZombieBoss","Zombie","WizardBoss","Wizard"],capacity:2,requiresPerson:false,
-  ruleText:"부하는 자기 두목이 있을 때만 안전합니다. 두목 없이 다른 두목과만 함께 있으면 위험합니다.",
+  ruleText:"각 종족의 부하들은 자신의 두목이 있을 때만 안전합니다. 자신의 두목 없이 다른 두목과만 함께 있으면 위험합니다.",
   rules:(pos,side)=>{
     const groups={"ElfBoss":"Elf","ZombieBoss":"Zombie","WizardBoss":"Wizard"};
     for(const s of["L","R"]){
@@ -212,20 +212,20 @@ const STAGES=[
   }},
 
  {name:"4단계 · 외계인! 사육사와 사자",tokens:["A","A1","A2","B","B1","B2","Keeper","Lion"],capacity:2,requiresPerson:false,
-  ruleText:"A/B 부모가 없으면 상대의 아이를 괴롭힙니다. 사자는 사육사가 없으면 위험합니다. 노는 A,B,Keeper만 가능합니다.",
+  ruleText:"어른 외계인이 없으면 다른 종족의 아이 외계인을 괴롭힙니다. 사자는 사육사가 없으면 위험합니다. 노는 어른 외계인, 사육사만 가능합니다.",
   rules:(pos,side)=>{
     const info=s=>Object.entries(pos).filter(([k,v])=>(v==="BOAT"?side:v)===s).map(([k])=>k);
     for(const s of["L","R"]){
       const h=info(s);
-      if((h.includes("A1")||h.includes("A2")) && !h.includes("A") && h.includes("B")) return `${s==="L"?"왼쪽":"오른쪽"}: B가 A의 아이를 괴롭힘`;
-      if((h.includes("B1")||h.includes("B2")) && !h.includes("B") && h.includes("A")) return `${s==="L"?"왼쪽":"오른쪽"}: A가 B의 아이를 괴롭힘`;
+      if((h.includes("A1")||h.includes("A2")) && !h.includes("A") && h.includes("B")) return `${s==="L"?"왼쪽":"오른쪽"}: 다른 아이 외계인을 괴롭힘`;
+      if((h.includes("B1")||h.includes("B2")) && !h.includes("B") && h.includes("A")) return `${s==="L"?"왼쪽":"오른쪽"}: 다른 아이 외계인을 괴롭힘`;
       if(h.includes("Lion") && !h.includes("Keeper")) return `${s==="L"?"왼쪽":"오른쪽"}: 사자가 날뜀`;
     }
     return null;
   }},
 
  {name:"5단계 · 조련사와 동물들",tokens:["Trainer","Elephant","Tiger","Dog","Cat","Mouse"],capacity:4,requiresPerson:true,
-  ruleText:"배 이동은 항상 조련사 동승이 필요합니다. 배 안에서: 코끼리는 쥐 외 다른 동물과 동승 불가. 호랑이와 강아지는 함께 탈 수 없어요. 둑에서는 조련사가 없을 때 (코-호, 호-개, 개-고, 고-쥐, 쥐-코) 싸움.",
+  ruleText:"배 이동은 항상 조련사 동승이 필요합니다. 코끼리는 무거워서 배에 탈때 쥐랑만 같이 탈 수 있습니다. 배에 호랑이와 강아지도 함께 탈 수 없어요. 둑에 조련사가 없을 때 다음 조합은 서로 싸웁니다(코끼리와 호랑이, 호랑이와 강아지, 강아지와 고양이, 고양이와 쥐, 쥐와 코끼리).",
   rules:(pos,side)=>{
     const info=s=>Object.entries(pos).filter(([k,v])=> (v==="BOAT"?side:v)===s).map(([k])=>k);
     const boatMembers=Object.entries(pos).filter(([k,v])=> v==="BOAT").map(([k])=>k);
