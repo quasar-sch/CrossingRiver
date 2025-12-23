@@ -225,7 +225,7 @@ const STAGES=[
   }},
 
  {name:"5단계 · 조련사와 동물들",tokens:["Trainer","Elephant","Tiger","Dog","Cat","Mouse"],capacity:4,requiresPerson:true,
-  ruleText:"배는 조련사만 몰 수 있습니다. 코끼리는 무거워서 배에 탈때 쥐랑만 같이 탈 수 있습니다. 배에 호랑이와 강아지도 함께 탈 수 없어요. 둑에 조련사가 없을 때 다음과 같은 일이 벌어집니다. 코끼리와 호랑이가 서로 싸웁니다. 호랑이와 강아지가 서로 싸웁니다. 강아지와 고양이가 서로 싸웁니다. 고양이가 쥐를 잡아먹습니다. 쥐가 코끼리에게 밟힙니다).",
+  ruleText:"배는 조련사만 몰 수 있습니다. 코끼리는 무거워서 배에 탈때 쥐랑만 같이 탈 수 있습니다. 배에 호랑이와 강아지도 함께 탈 수 없어요. 둑에 조련사가 없을 때 다음과 같은 일이 벌어집니다. 코끼리와 호랑이가 서로 싸웁니다. 호랑이와 강아지가 서로 싸웁니다. 강아지와 고양이가 서로 싸웁니다. 고양이가 쥐를 잡아먹습니다. 쥐가 코끼리에게 밟힙니다.",
   rules:(pos,side)=>{
     const info=s=>Object.entries(pos).filter(([k,v])=> (v==="BOAT"?side:v)===s).map(([k])=>k);
     const boatMembers=Object.entries(pos).filter(([k,v])=> v==="BOAT").map(([k])=>k);
