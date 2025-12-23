@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>강 건너기 퍼즐 ⛵ v1.1 (Tap)</title>
+<title>강 건너기 퍼즐 ⛵ v1.1</title>
 <style>
   :root { --bg:#f4fbff; --ink:#1f2937; --accent:#0ea5e9; --card:#ffffffcc; }
   body{margin:0;font-family:system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,sans-serif;background:var(--bg);color:var(--ink)}
@@ -55,19 +55,9 @@
 
   .boat{position:relative;width:360px;max-width:86%;height:110px;background:#8b5a2b;border-radius:12px;transition:.25s}
   .slots{position:absolute;left:8px;right:8px;bottom:8px;height:96px;display:flex;gap:10px;justify-content:center;align-items:flex-end;flex-wrap:wrap}
-  .slot{width:88px;height:88px;border:2px dashed #ffffff99;border-radius:12px;background:#ffffff22;display:flex;align-items:center;justify-content:center;color:#fff;box-sizing:border-box}
+  .slot{width:88px;height:88px;border:2px dashed #ffffff99;border-radius:12px;background:#ffffff22;display:flex;align-items:center;justify-content:center;color:#fff}
 
-  .token{
-    width:88px;height:88px;border-radius:16px;background:var(--card);
-    border:1px solid #e5e7eb;box-shadow:0 6px 12px rgba(0,0,0,.08);
-    display:flex;align-items:center;justify-content:center;font-size:40px;cursor:pointer;
-
-    /* ✅ 터치/클릭 UX */
-    touch-action:manipulation;
-    -webkit-user-select:none;
-    user-select:none;
-  }
-  .token:active{transform:scale(.97)}
+  .token{width:88px;height:88px;border-radius:16px;background:var(--card);border:1px solid #e5e7eb;box-shadow:0 6px 12px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:40px;cursor:grab}
 
   .result{position:absolute;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:10}
   .result .card{background:#fff;border-radius:18px;padding:24px;width:min(560px,88vw);text-align:center}
@@ -87,19 +77,13 @@
 
   /* 5단계: 큰 보트 + 2×2 고정 + 위치 여백 튜닝 */
   .boat.big{width:460px;height:210px;}
-
-  /* ✅ Stage5 슬롯 "위로 떠 보임" 보정: inset 기반으로 안정 배치 */
   .boat.big .slots{
-    position:absolute;
-    inset:20px 16px 10px 16px; /* top right bottom left */
     display:grid;
     grid-template-columns:repeat(2,1fr);
     grid-template-rows:repeat(2,1fr);
     gap:12px;
-    place-items:center;
-    align-content:center;
-    height:auto;
-    left:auto; right:auto; bottom:auto;
+    left:16px; right:16px; bottom:14px; height:auto;
+    justify-items:center; align-items:end;
   }
   /* ▲ 단계별 보트/슬롯 규칙 끝 */
 </style>
@@ -275,60 +259,12 @@ function emoji(name){
   return name;
 }
 
-/* ✅ 클릭/터치 토글: 둑(보트 있는 쪽) ↔ 배 */
-function toggleToken(name){
-  if(state.moving) return;
-  if(overlay.style.display==="flex") return;
-
-  const st=STAGES[state.stageIndex];
-  const pos=state.positions[name];
-
-  // 배에 있으면: 현재 보트가 있는 둑으로 하선
-  if(pos==="BOAT"){
-    state.positions[name]=state.boatSide;
-    render();
-    return;
-  }
-
-  // 둑에 있으면: 보트가 그 둑에 있을 때만 탑승 가능
-  if(pos===state.boatSide){
-    if(currentBoatCount()>=st.capacity) return; // 정원 초과면 무시
-    state.positions[name]="BOAT";
-    render();
-    return;
-  }
-
-  // 반대편 둑 토큰 클릭은 아무 동작 없음
-}
-
 function makeToken(name){
-  const el=document.createElement("div");
-  el.className="token";
-  el.dataset.id=name;
-  el.textContent=emoji(name);
-
+  const el=document.createElement("div");el.className="token";el.draggable=true;el.dataset.id=name;el.textContent=emoji(name);
   if(name.includes("Boss")) el.style.fontSize="48px";
   if(["Elf","Zombie","Wizard"].includes(name)) el.style.fontSize="28px";
   if(name==="A1"||name==="A2"||name==="B1"||name==="B2") el.style.fontSize="22px";
-
-  // ✅ 드래그 제거
-  el.draggable=false;
-
-  // ✅ 클릭/터치(포인터)로 토글
-  el.addEventListener("pointerup",(e)=>{
-    e.preventDefault();
-    toggleToken(name);
-  });
-
-  // 키보드 접근성(선택): Enter/Space
-  el.tabIndex=0;
-  el.addEventListener("keydown",(e)=>{
-    if(e.key==="Enter" || e.key===" "){
-      e.preventDefault();
-      toggleToken(name);
-    }
-  });
-
+  el.addEventListener("dragstart",e=>{if(state.moving){e.preventDefault();return}e.dataTransfer.setData("text/plain",name)});
   return el;
 }
 
@@ -365,9 +301,7 @@ function render(){
 
   // 토큰 렌더
   for(const name of st.tokens){
-    const pos=state.positions[name];
-    const el=makeToken(name);
-
+    const pos=state.positions[name]; const el=makeToken(name);
     if(pos==="L") leftDock.appendChild(el);
     else if(pos==="R") rightDock.appendChild(el);
     else if(pos==="BOAT"){
@@ -389,7 +323,35 @@ function render(){
 
 function currentBoatCount(){return Object.values(state.positions).filter(v=>v==="BOAT").length}
 
-/* ✅ 드래그&드롭 이벤트는 제거(클릭/터치 방식으로 대체) */
+const leftDockEl=$("#dock-left");
+const rightDockEl=$("#dock-right");
+
+const boatEl=$("#boat");
+boatEl.addEventListener("dragover",e=>{if(!state.moving)e.preventDefault()});
+boatEl.addEventListener("drop",e=>{
+  if(state.moving)return;
+  e.preventDefault();
+  const name=e.dataTransfer.getData("text/plain"); if(!name)return;
+  const st=STAGES[state.stageIndex];
+  if(state.positions[name]!=="BOAT"&&currentBoatCount()>=st.capacity)return;
+  const same=(state.positions[name]===state.boatSide)||(state.positions[name]==="BOAT");
+  if(!same)return;
+  state.positions[name]=(state.positions[name]==="BOAT")?state.boatSide:"BOAT";
+  render();
+});
+
+[leftDockEl,rightDockEl].forEach(dock=>{
+  dock.addEventListener("dragover",e=>{if(!state.moving)e.preventDefault()});
+  dock.addEventListener("drop",e=>{
+    if(state.moving)return;
+    e.preventDefault();
+    const name=e.dataTransfer.getData("text/plain"); if(!name)return;
+    const side=(dock===leftDockEl)?"L":"R";
+    if(state.positions[name]==="BOAT"&&state.boatSide===side){
+      state.positions[name]=side; render();
+    }
+  });
+});
 
 function moveBoat(){
   if(state.moving)return;
